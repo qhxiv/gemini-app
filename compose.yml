@@ -1,0 +1,26 @@
+services:
+  db:
+    env_file: ".env.local"
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    container_name: ai_db
+    restart: always
+    volumes:
+      - ai_db:/var/lib/postgres/data
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    env_file: ".env.local"
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  ai_db:
+  pgadmin-data:
