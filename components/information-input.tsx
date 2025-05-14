@@ -25,11 +25,15 @@ export default function InformationInput() {
 
   const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
   // ae thay bằng key của ae chỗ your api key
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=apiKey`;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=your_api_key`;
   
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Kiểm tra xem trình duyệt có hỗ trợ Web Speech API không
+    // Nếu không hỗ trợ thì thông báo cho người dùng
+    // Nếu có thì khởi tạo đối tượng SpeechRecognition
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       alert("Trình duyệt không hỗ trợ mic.");
@@ -83,8 +87,48 @@ export default function InformationInput() {
   };
   
 const handleSend = async (text: string) => {
-  if (!text.trim()) return;
+  console.log("👉 Người dùng nói/gõ:", text);
 
+  if (!text.trim()) return;
+  
+  const lower = text.toLowerCase();
+  // 👉 Tích hợp calendar
+  if (lower.includes("lịch") && lower.includes("calendar")) {
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+
+  try {
+      const res = await fetch("/api/calendar/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+
+    const data = await res.json();
+
+    if (data.success) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "gemini", content: `📅 Đã tạo sự kiện trên Google Calendar: ${data.summary}` },
+      ]);
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        { role: "gemini", content: `❌ Không thể tạo sự kiện: ${data.error}` },
+      ]);
+    }
+  } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "gemini", content: `⚠️ Không thể gọi API lịch: ${err.message}` },
+      ]);
+    }
+
+    setValue("");
+    return;
+  }
+
+  // ✅ Nếu không phải đặt lịch → xử lý Gemini bình thường
   setMessages((prev) => [...prev, { role: "user", content: text }]);
   setValue("");
 
