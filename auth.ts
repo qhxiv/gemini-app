@@ -30,23 +30,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       authorize: async (credentials) => {
-        let user = { id: 1, username: "qh", password: "123" };
+        const parsedCredentials = z
+          .object({
+            username: z.string(),
+            password: z.string(),
+          })
+          .safeParse(credentials);
 
-        // const parsedCredentials = z
-        //   .object({
-        //     username: z.string(),
-        //     password: z.string(),
-        //   })
-        //   .safeParse(credentials);
-        // if (parsedCredentials.success) {
-        //   const { username, password } = parsedCredentials.data;
-        //   const user = await getUser(username);
-        //   if (!user) return null;
-        //   const passwordMatch = compareSync(password, user.password);
+        if (parsedCredentials.success) {
+          const { username, password } = parsedCredentials.data;
+          const user = await getUser(username);
+          if (!user) return null;
 
-        //   if (passwordMatch) return user;
-        // }
-        return user;
+          try {
+            const passwordMatch = compareSync(user.password, password);
+            if (passwordMatch) return user;
+          } catch (err) {
+            console.log(err);
+          }
+
+          return null;
+        }
+
+        return null;
       },
     }),
   ],

@@ -1,5 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
+import { usePathname } from "next/navigation";
+
+import { Mic, SendHorizonal } from "lucide-react";
+
 declare global {
   interface Window {
     SpeechRecognition: any;
@@ -7,10 +13,10 @@ declare global {
   }
 }
 
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, SendHorizonal } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 //  Hàm tách ngày và giờ
 function extractDatetimeFromText(text: string) {
@@ -53,7 +59,13 @@ type ChatMessage = {
   content: string;
 };
 
-export default function InformationInput() {
+type InformationInputProps = {
+  onSend: (message: string) => void;
+};
+
+export default function InformationInput({ chatId }: { chatId?: number }) {
+  const pathname = usePathname();
+
   const [value, setValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [listening, setListening] = useState(false);

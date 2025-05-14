@@ -4,15 +4,19 @@ import clsx from "clsx";
 
 import { useState } from "react";
 
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Menu, SquarePen } from "lucide-react";
 
+import { Chat } from "@/lib/definitions";
+
 import NavLinks from "@/components/nav-links";
 import { Button } from "@/components/ui/button";
 
-export default function SideBar() {
+export default function SideBar({ chats }: { chats: Chat[] }) {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
   const pathname = usePathname();
 
@@ -43,17 +47,19 @@ export default function SideBar() {
         )}
       </div>
 
-      <div hidden={!isOpen}>
-        <Button
-          asChild
-          className="text-muted-foreground hover:text-muted-foreground hover:bg-transparent"
-          variant="ghost"
-        >
-          <p>Recent</p>
-        </Button>
+      {chats.length > 0 && (
+        <div hidden={!isOpen}>
+          <Button
+            asChild
+            className="text-muted-foreground hover:text-muted-foreground hover:bg-transparent"
+            variant="ghost"
+          >
+            <p>Recent</p>
+          </Button>
 
-        <NavLinks />
-      </div>
+          <NavLinks chats={chats} />
+        </div>
+      )}
     </nav>
   );
 }
