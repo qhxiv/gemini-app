@@ -7,21 +7,25 @@ declare global {
   }
 }
 
-import { testSend } from "@/app/server-action";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, SendHorizonal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+type ChatMessage = {
+  role: "user" | "gemini";
+  content: string;
+};
+
 export default function InformationInput() {
   const [value, setValue] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);// lưu lại các tin nhắn
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-
   const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
   // ae thay bằng key của ae chỗ your api key
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=your_api_key`;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=apiKey`;
   
   useEffect(() => {
     const SpeechRecognition =
@@ -39,7 +43,8 @@ export default function InformationInput() {
     recognition.onresult = async (event: any) => {
       const transcript = event.results[0][0].transcript;
       console.log("🗣️ Bạn nói:", transcript);
-      setValue(transcript);
+      handleSend(transcript);
+
 
       // Gửi đến Gemini API
       const res = await fetch(apiUrl, {
@@ -76,8 +81,43 @@ export default function InformationInput() {
       setListening(true);
     }
   };
+  
+const handleSend = async (text: string) => {
+  if (!text.trim()) return;
+
+  setMessages((prev) => [...prev, { role: "user", content: text }]);
+  setValue("");
+
+  const res = await fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text }] }],
+    }),
+  });
+
+  const data = await res.json();
+  const reply =
+    data.candidates?.[0]?.content?.parts?.[0]?.text || "(Không có phản hồi)";
+  setMessages((prev) => [...prev, { role: "gemini", content: reply }]);
+};
 
   return (
+    <div className="flex flex-col gap-y-4 max-w-2xl mx-auto w-full">
+    {/* 👇 BƯỚC 3: Thêm vùng hiển thị lịch sử chat */}
+    <div className="border rounded p-4 bg-gray-50 min-h-[200px] max-h-[300px] overflow-y-auto space-y-2 mb-2 w-full">
+      {messages.length === 0 && (
+        <p className="text-sm text-gray-400">Chưa có cuộc trò chuyện nào...</p>
+      )}
+      {messages.map((msg, idx) => (
+        <div key={idx} className="text-sm">
+          <strong className={msg.role === "user" ? "text-blue-600" : "text-green-700"}>
+            {msg.role === "user" ? "🧑 Bạn" : "🤖 Gemini"}:
+          </strong>{" "}
+          {msg.content}
+        </div>
+      ))}
+    </div>
     <div className="flex items-end justify-center gap-x-2">
       <Textarea
         value={value}
@@ -93,10 +133,11 @@ export default function InformationInput() {
           <Mic />
         </Button>
       ) : (
-        <Button size="icon" onClick={() => testSend(value)}>
+        <Button size="icon" onClick={() => handleSend(value)}>
           <SendHorizonal />
         </Button>
       )}
     </div>
+  </div>
   );
 }
