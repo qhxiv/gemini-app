@@ -13,9 +13,16 @@ import {
   getAllparts,
 } from "@/lib/data";
 
+import {
+  createUserContent,
+  createPartFromUri,
+} from "@google/genai";
+
+
 const apiKey = process.env.API_KEY;
 const ai = new GoogleGenAI({ apiKey });
 const model = "gemini-2.0-flash";
+
 
 export async function generateTitle(message: string) {
   const response = await ai.models.generateContent({
@@ -26,7 +33,18 @@ export async function generateTitle(message: string) {
   return response.text;
 }
 
-export async function getNewResponse(contents: string) {
+export async function getNewResponse(contents: string, fileuri: string | null, fileMimeType: string | null) {
+  if(fileuri != null){
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: createUserContent([
+        createPartFromUri(fileuri!, fileMimeType!),
+        contents,
+      ]),
+    });
+    console.log(response.text);
+    return response.text
+  }
   const response = await ai.models.generateContent({
     model,
     contents,
@@ -35,7 +53,7 @@ export async function getNewResponse(contents: string) {
   return response.text;
 }
 
-export async function getResponseInChat(chatId: number, message: string) {
+export async function getResponseInChat(chatId: number, message: string, fileuri: string | null, fileMimeType: string| null) {
   const sentContent = await createContent(chatId, "user");
   createPart(sentContent.id, message);
 
@@ -67,7 +85,8 @@ export async function getResponseInChat(chatId: number, message: string) {
   return responseText;
 }
 
-export async function createNewChat(message: string) {
+
+export async function createNewChat(message: string, fileuri: string | null, fileMimeType: string | null) {
   const title = await generateTitle(message);
   if (!title) throw new Error("Failed to get title of the chat");
 
@@ -75,14 +94,13 @@ export async function createNewChat(message: string) {
   const chat = await createChat(1, title);
   const contentSend = await createContent(chat.id, "user");
   createPart(contentSend.id, message);
-
+  
   // Get new response
   const contentResponse = await createContent(chat.id, "model");
 
-  const newResponse = await getNewResponse(message);
+  const newResponse = await getNewResponse(message, fileuri, fileMimeType);
   if (!newResponse) throw new Error("Failed to get response from Gemini");
 
-  console.log(newResponse);
   createPart(contentResponse.id, newResponse);
 
   revalidatePath("/");
