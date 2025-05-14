@@ -6,7 +6,8 @@ CREATE TABLE "user"(
 
 CREATE TABLE "chat"(
     "id" SERIAL PRIMARY KEY,
-    "userId" INTEGER NOT NULL REFERENCES "user"("id")
+    "userId" INTEGER NOT NULL REFERENCES "user"("id"),
+    "title" TEXT NOT NULL
 );
 
 CREATE TYPE role AS ENUM ('user', 'model');
@@ -20,5 +21,7 @@ CREATE TABLE "content"(
 CREATE TABLE "part"(
     "id" SERIAL PRIMARY KEY,
     "contentId" INTEGER NOT NULL REFERENCES "content"("id"),
-    "text" VARCHAR(255) NOT NULL
+    "text" TEXT NOT NULL
 );
+
+INSERT INTO "user" VALUES (1, 'user', 'password');

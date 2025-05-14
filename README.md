@@ -17,6 +17,8 @@ pnpm dlx auth secret
 ## Add some environment variables
 
 ```env
+# .env.local
+
 AUTH_SECRET= # Your auth secret
 
 API_KEY= # Get your Gemini api key from Google AI Studio
@@ -25,7 +27,7 @@ API_KEY= # Get your Gemini api key from Google AI Studio
 POSTGRES_PASSWORD=123456
 POSTGRES_USER=postgres
 POSTGRES_DB=ai
-POSTGRES_HOST=ai_db
+POSTGRES_HOST=localhost
 
 PGADMIN_DEFAULT_EMAIL=user@domain.com
 PGADMIN_DEFAULT_PASSWORD=123456

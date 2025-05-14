@@ -1,11 +1,19 @@
 "use client";
 
+import { useState } from "react";
+
+import { usePathname } from "next/navigation";
+
+import { Mic, SendHorizonal } from "lucide-react";
+
 declare global {
   interface Window {
     SpeechRecognition: any;
     webkitSpeechRecognition: any;
   }
 }
+
+import { createNewChat, getResponseInChat } from "@/lib/server-action";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +25,13 @@ type ChatMessage = {
   content: string;
 };
 
-export default function InformationInput() {
+type InformationInputProps = {
+  onSend: (message: string) => void;
+};
+
+export default function InformationInput({ chatId }: { chatId?: number }) {
+  const pathname = usePathname();
+
   const [value, setValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);// lưu lại các tin nhắn
   const [listening, setListening] = useState(false);
@@ -177,7 +191,15 @@ const handleSend = async (text: string) => {
           <Mic />
         </Button>
       ) : (
-        <Button size="icon" onClick={() => handleSend(value)}>
+        <Button
+          size="icon"
+          onClick={() => {
+            if (pathname === "/") createNewChat(value);
+            else if (chatId) getResponseInChat(chatId, value);
+
+            setValue("");
+          }}
+        >
           <SendHorizonal />
         </Button>
       )}
