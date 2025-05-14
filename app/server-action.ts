@@ -18,3 +18,12 @@ export async function send(
   const response = await chat.sendMessage({ message });
   return response.text;
 }
+
+export async function testSend(contents: string) {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents,
+  });
+
+  console.log(response.text);
+}

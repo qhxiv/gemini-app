@@ -1,5 +1,7 @@
 "use client";
 
+import { testSend } from "@/app/server-action";
+
 import { useState } from "react";
 
 import { Mic, SendHorizonal } from "lucide-react";
@@ -26,7 +28,7 @@ export default function InformationInput() {
           <Mic />
         </Button>
       ) : (
-        <Button size="icon">
+        <Button size="icon" onClick={() => testSend(value)}>
           <SendHorizonal />
         </Button>
       )}
