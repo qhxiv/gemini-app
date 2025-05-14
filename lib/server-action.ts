@@ -42,7 +42,6 @@ export async function getNewResponse(contents: string, fileuri: string | null, f
         contents,
       ]),
     });
-    console.log(response.text);
     return response.text
   }
   const response = await ai.models.generateContent({
@@ -53,7 +52,7 @@ export async function getNewResponse(contents: string, fileuri: string | null, f
   return response.text;
 }
 
-export async function getResponseInChat(chatId: number, message: string, fileuri: string | null, fileMimeType: string| null) {
+export async function getResponseInChat(chatId: number, message: string, fileuri: any, fileMimeType: any) {
   const sentContent = await createContent(chatId, "user");
   createPart(sentContent.id, message);
 
@@ -71,6 +70,26 @@ export async function getResponseInChat(chatId: number, message: string, fileuri
     }),
   );
 
+  if(fileuri != null){
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: createUserContent([
+        createPartFromUri(fileuri!, fileMimeType!),
+        message,
+      ]),
+    });
+
+    const responseText = response.text;
+    if (!responseText) throw new Error("Failed to get response from gemini");
+
+    const newContent = await createContent(chatId, "model");
+    createPart(newContent.id, responseText);
+
+    revalidatePath(`/chat/${chatId}`);
+
+    return responseText;
+  }
+
   const chat = ai.chats.create({ model, history });
 
   const response = await chat.sendMessage({ message });
@@ -86,7 +105,7 @@ export async function getResponseInChat(chatId: number, message: string, fileuri
 }
 
 
-export async function createNewChat(message: string, fileuri: string | null, fileMimeType: string | null) {
+export async function createNewChat(message: string, fileuri: any, fileMimeType: any) {
   const title = await generateTitle(message);
   if (!title) throw new Error("Failed to get title of the chat");
 
