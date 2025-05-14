@@ -1,15 +1,23 @@
 "use client";
 
-import { testSend } from "@/app/server-action";
-
 import { useState } from "react";
 
+import { usePathname } from "next/navigation";
+
 import { Mic, SendHorizonal } from "lucide-react";
+
+import { createNewChat, getResponseInChat } from "@/lib/server-action";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function InformationInput() {
+type InformationInputProps = {
+  onSend: (message: string) => void;
+};
+
+export default function InformationInput({ chatId }: { chatId?: number }) {
+  const pathname = usePathname();
+
   const [value, setValue] = useState("");
 
   return (
@@ -28,7 +36,15 @@ export default function InformationInput() {
           <Mic />
         </Button>
       ) : (
-        <Button size="icon" onClick={() => testSend(value)}>
+        <Button
+          size="icon"
+          onClick={() => {
+            if (pathname === "/") createNewChat(value);
+            else if (chatId) getResponseInChat(chatId, value);
+
+            setValue("");
+          }}
+        >
           <SendHorizonal />
         </Button>
       )}

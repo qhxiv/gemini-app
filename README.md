@@ -17,6 +17,8 @@ pnpm dlx auth secret
 ## Add some environment variables
 
 ```env
+# .env.local
+
 AUTH_SECRET= # Your auth secret
 
 API_KEY= # Get your Gemini api key from Google AI Studio
