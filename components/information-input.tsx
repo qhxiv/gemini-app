@@ -1,5 +1,4 @@
 "use client";
-
 import { usePathname } from "next/navigation";
 
 declare global {
@@ -44,7 +43,7 @@ export default function InformationInput({ chatId }: { chatId?: number }) {
 
   const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
   // ae thay bằng key của ae chỗ your api key
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=your_api_key`;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=` + apiKey;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
